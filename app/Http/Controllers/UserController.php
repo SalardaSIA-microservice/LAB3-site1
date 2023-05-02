@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\User;
 use App\Traits\ApiResponser;
-use DB;
 
 Class UserController extends Controller {
     use ApiResponser; 
@@ -17,8 +16,8 @@ Class UserController extends Controller {
     }
 
     public function getUsers(){
-        $users = DB::connection('mysql')->select("Select * from tbluser");
-        return $this->successResponse($users);
+        $users = User::all();
+        return response()->json(['data' => $users], 200);
     }
 
     public function index(){
@@ -35,7 +34,7 @@ Class UserController extends Controller {
         $this->validate($request,$rules);
 
         $user = User::create($request->all());
-        return $this->successResponse($user, Response::HTTP_CREATED);
+        return response()->json($user, 200);
     }
 
     public function show($id){
@@ -46,31 +45,5 @@ Class UserController extends Controller {
         {
             return $this->errorResponse('User ID Does Not Exists', Response::HTTP_NOT_FOUND);
         }
-    }
-
-    public function update(Request $request, $id){ 
-        $rules = [
-            'username' => 'required|max:20',
-            'password' => 'required|max:20',
-        ];
-
-        $this->validate($request, $rules);
-
-        $user = User::findOrFail($id);
-        $user->fill($request->all());
-
-        if ($user->isClean()){
-            return Response()->json("At least one value must change", 403);
-        } else {
-            $user->save();
-            return $this->successResponse($user);
-        }
-    }
-
-    public function delete($id){ 
-        $user = User::findOrFail($id);
-        $user->delete();
-
-        return $this->successResponse($user);
     }
 }
